@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, AlertTriangle } from "lucide-react"
 import { getCategory, getSignsByCategory, CATEGORIES } from "@/data/signs"
 
 export function generateStaticParams() {
@@ -18,68 +17,29 @@ export default async function CategoryPage({
   if (!cat) notFound()
 
   const signs = getSignsByCategory(category)
-  const colorVar = `var(--color-${cat.id})`
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-
+    <div className="space-y-5">
       {/* Header */}
       <div>
-        <Link
-          href="/signs"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 13,
-            fontWeight: 500,
-            color: "var(--color-primary)",
-            textDecoration: "none",
-          }}
-        >
-          <ChevronLeft size={14} strokeWidth={2.5} />
-          Signs
+        <Link href="/signs" className="text-sm text-red-700 font-medium hover:underline">
+          ← Signs
         </Link>
-
-        <h1 style={{ fontWeight: 700, fontSize: 28, color: colorVar, marginTop: 8, marginBottom: 6 }}>
-          {cat.name}
-        </h1>
-
-        <span
-          style={{
-            display: "inline-block",
-            fontSize: 12,
-            fontWeight: 500,
-            color: colorVar,
-            background: `color-mix(in srgb, ${colorVar} 10%, transparent)`,
-            border: `1px solid color-mix(in srgb, ${colorVar} 20%, transparent)`,
-            borderRadius: 999,
-            padding: "3px 10px",
-            marginBottom: 8,
-          }}
-        >
+        <h1 className="text-xl font-bold text-gray-900 mt-2">{cat.name}</h1>
+        <div className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${cat.bg} ${cat.color} ${cat.border} border`}>
           {cat.subtitle}
-        </span>
-
-        <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>{cat.rule}</p>
+        </div>
+        <p className="text-sm text-gray-600 mt-2">{cat.rule}</p>
       </div>
 
       {/* Signs grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3" style={{ gap: 16 }}>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {signs.map((sign) => (
           <div
             key={sign.id}
-            className="card"
-            style={{
-              padding: 16,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 12,
-              borderLeft: `3px solid ${colorVar}`,
-            }}
+            className="bg-white rounded-xl border border-gray-200 p-3 flex flex-col items-center gap-2"
           >
-            <div style={{ width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="w-24 h-24 flex items-center justify-center">
               <Image
                 src={sign.image}
                 alt={sign.name}
@@ -88,36 +48,18 @@ export default async function CategoryPage({
                 className="object-contain max-w-full max-h-full"
               />
             </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", lineHeight: 1.35 }}>
-                {sign.name}
-              </p>
-              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4, lineHeight: 1.45 }}>
-                {sign.description}
-              </p>
+            <div className="text-center">
+              <p className="text-xs font-semibold text-gray-800 leading-tight">{sign.name}</p>
+              <p className="text-xs text-gray-500 mt-1 leading-tight">{sign.description}</p>
               {sign.note && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 5,
-                    marginTop: 8,
-                    background: "color-mix(in srgb, var(--color-warning) 8%, transparent)",
-                    border: "1px solid color-mix(in srgb, var(--color-warning) 20%, transparent)",
-                    borderRadius: 6,
-                    padding: "6px 8px",
-                    textAlign: "left",
-                  }}
-                >
-                  <AlertTriangle size={12} strokeWidth={2} style={{ color: "var(--color-warning)", flexShrink: 0, marginTop: 1 }} />
-                  <p style={{ fontSize: 11, color: "var(--color-warning)", lineHeight: 1.4 }}>{sign.note}</p>
-                </div>
+                <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1 leading-tight">
+                  ⚠ {sign.note}
+                </p>
               )}
             </div>
           </div>
         ))}
       </div>
-
     </div>
   )
 }
