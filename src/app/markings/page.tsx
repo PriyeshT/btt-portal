@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { MARKINGS, MARKING_SECTIONS, getMarkingsBySection, type Marking } from "@/data/markings"
 
 export default function MarkingsPage() {
@@ -12,25 +13,22 @@ export default function MarkingsPage() {
   const section = MARKING_SECTIONS.find(s => s.id === activeSection)
 
   return (
-    <div className="space-y-5">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Road Markings</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 style={{ fontWeight: 700, fontSize: 28, color: "var(--color-text-primary)" }}>Road Markings</h1>
+        <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginTop: 4 }}>
           {MARKINGS.length} markings from the Official Handbook
         </p>
       </div>
 
       {/* Section tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
         {MARKING_SECTIONS.map((sec) => (
           <button
             key={sec.id}
-            onClick={() => setActiveSection(sec.id as Marking['section'])}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-              activeSection === sec.id
-                ? 'bg-amber-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-amber-300'
-            }`}
+            onClick={() => { setActiveSection(sec.id as Marking['section']); setExpanded(null) }}
+            className={`tab-btn${activeSection === sec.id ? ' active' : ''}`}
           >
             {sec.label}
           </button>
@@ -38,47 +36,98 @@ export default function MarkingsPage() {
       </div>
 
       {section && (
-        <p className="text-xs text-gray-500">{section.description}</p>
+        <p style={{ fontSize: 13, color: "var(--color-text-muted)", marginTop: -8 }}>{section.description}</p>
       )}
 
       {/* Markings list */}
-      <div className="space-y-3">
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {markings.map((marking) => (
-          <button
-            key={marking.id}
-            onClick={() => setExpanded(expanded === marking.id ? null : marking.id)}
-            className="w-full text-left bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-amber-300 transition-colors"
-          >
-            <div className="flex gap-3 p-3">
-              <div className="w-24 h-20 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center">
+          <div key={marking.id} className="card" style={{ overflow: "hidden" }}>
+            <button
+              onClick={() => setExpanded(expanded === marking.id ? null : marking.id)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 16,
+                display: "flex",
+                gap: 16,
+                alignItems: "flex-start",
+              }}
+            >
+              <div
+                style={{
+                  width: 96,
+                  height: 80,
+                  flexShrink: 0,
+                  background: "var(--color-bg)",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
                 <Image
                   src={marking.image}
                   alt={marking.name}
-                  width={96}
-                  height={80}
+                  width={88}
+                  height={72}
                   className="object-contain max-w-full max-h-full"
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800">{marking.name}</p>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
+                  {marking.name}
+                </p>
                 {marking.key && (
-                  <span className="inline-block mt-1 text-xs bg-amber-100 text-amber-800 rounded px-2 py-0.5">
+                  <span
+                    style={{
+                      display: "inline-block",
+                      marginTop: 6,
+                      fontSize: 11,
+                      fontWeight: 500,
+                      color: "var(--color-text-secondary)",
+                      background: "var(--color-bg)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 999,
+                      padding: "2px 10px",
+                    }}
+                  >
                     {marking.key}
                   </span>
                 )}
               </div>
-              <span className="text-gray-400 text-sm self-start">
-                {expanded === marking.id ? '▲' : '▼'}
-              </span>
-            </div>
+
+              <div style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>
+                {expanded === marking.id
+                  ? <ChevronUp size={16} strokeWidth={2} />
+                  : <ChevronDown size={16} strokeWidth={2} />
+                }
+              </div>
+            </button>
+
             {expanded === marking.id && (
-              <div className="px-3 pb-3 pt-0 border-t border-gray-100">
-                <p className="text-sm text-gray-600">{marking.description}</p>
+              <div
+                style={{
+                  padding: "0 16px 16px",
+                  borderTop: "1px solid var(--color-border)",
+                  paddingTop: 12,
+                }}
+              >
+                <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+                  {marking.description}
+                </p>
               </div>
             )}
-          </button>
+          </div>
         ))}
       </div>
+
     </div>
   )
 }
