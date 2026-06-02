@@ -1,19 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import NavBar from "./NavBar"
 import "./globals.css"
 
 export const metadata: Metadata = {
   title: "BTT Study Portal",
   description: "Singapore Basic Theory Test study portal",
 }
-
-const NAV = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/signs", label: "Signs", icon: "🚦" },
-  { href: "/flashcards", label: "Flashcards", icon: "🃏" },
-  { href: "/markings", label: "Markings", icon: "🛣️" },
-  { href: "/rules", label: "Rules", icon: "📋" },
-]
 
 export default function RootLayout({
   children,
@@ -22,37 +15,29 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col bg-gray-50">
+      <body className="min-h-full flex flex-col" style={{ background: "var(--color-bg)" }}>
+
         {/* Top header */}
-        <header className="bg-red-700 text-white sticky top-0 z-50 shadow-md">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link href="/" className="font-bold text-lg tracking-tight">
-              BTT Study Portal
+        <header style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }} className="sticky top-0 z-50">
+          <div className="mx-auto px-6 py-3 flex items-center justify-between" style={{ maxWidth: 1100 }}>
+            <Link href="/" className="flex items-center gap-1.5 text-lg tracking-tight" style={{ fontWeight: 700 }}>
+              <span style={{ color: "var(--color-primary)" }}>BTT</span>
+              <span style={{ color: "var(--color-text-primary)" }}>Study Portal</span>
             </Link>
-            <span className="text-red-200 text-sm hidden sm:block">Singapore Traffic Police</span>
+            <NavBar />
           </div>
         </header>
 
         {/* Main content */}
-        <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-24">
+        <main className="flex-1 w-full mx-auto px-6 py-6 pb-28" style={{ maxWidth: 1100 }}>
           {children}
         </main>
 
-        {/* Bottom nav */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="max-w-4xl mx-auto grid grid-cols-5">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-red-700 transition-colors"
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-xs mt-0.5">{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
+        {/* Footer */}
+        <footer className="pb-20 sm:pb-4 text-center" style={{ color: "var(--color-text-muted)", fontSize: 11 }}>
+          Content sourced from the Singapore Traffic Police Official Handbook
+        </footer>
+
       </body>
     </html>
   )
