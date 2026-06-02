@@ -1,126 +1,89 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { RULES, RULE_SECTIONS, getRulesBySection } from "@/data/rules"
-
-const SECTION_COLOR: Record<string, string> = {
-  'Lane Rules':           'var(--color-mandatory)',
-  'Speed':                'var(--color-prohibitory)',
-  'Junctions & Turns':    'var(--color-warning)',
-  'Expressways':          'var(--color-emas)',
-  'Parking & Stopping':   'var(--color-regulatory)',
-  'Signals & Lights':     'var(--color-pedal-cycle)',
-  'Road Users':           'var(--color-information)',
-  'Safety':               'var(--color-facility)',
-  'Vehicle Requirements': 'var(--color-tunnel)',
-  'Special Zones':        'var(--color-pedestrian)',
-}
 
 export default function RulesPage() {
   const [activeSection, setActiveSection] = useState(RULE_SECTIONS[0])
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const rules = getRulesBySection(activeSection)
-  const accentColor = SECTION_COLOR[activeSection] ?? 'var(--color-primary)'
+
+  const sectionColors: Record<string, string> = {
+    'Lane Rules': 'bg-blue-700',
+    'Speed': 'bg-red-700',
+    'Junctions & Turns': 'bg-orange-600',
+    'Expressways': 'bg-purple-700',
+    'Parking & Stopping': 'bg-yellow-600',
+    'Signals & Lights': 'bg-green-700',
+    'Road Users': 'bg-teal-700',
+    'Safety': 'bg-rose-700',
+    'Vehicle Requirements': 'bg-slate-700',
+    'Special Zones': 'bg-indigo-700',
+  }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-
+    <div className="space-y-5">
       <div>
-        <h1 style={{ fontWeight: 700, fontSize: 28, color: "var(--color-text-primary)" }}>Traffic Rules</h1>
-        <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginTop: 4 }}>
+        <h1 className="text-xl font-bold text-gray-900">Traffic Rules</h1>
+        <p className="text-sm text-gray-500 mt-1">
           {RULES.length} rules from Part B of the Official Handbook
         </p>
       </div>
 
-      {/* Section tabs */}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
-        {RULE_SECTIONS.map((sec) => (
-          <button
-            key={sec}
-            onClick={() => { setActiveSection(sec); setExpanded(null) }}
-            className={`tab-btn${activeSection === sec ? ' active' : ''}`}
-          >
-            {sec}
-          </button>
-        ))}
+      {/* Section selector */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+        {RULE_SECTIONS.map((sec) => {
+          const active = sec === activeSection
+          const color = sectionColors[sec] || 'bg-gray-700'
+          return (
+            <button
+              key={sec}
+              onClick={() => { setActiveSection(sec); setExpanded(null) }}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                active ? `${color} text-white` : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {sec}
+            </button>
+          )
+        })}
       </div>
 
       {/* Rules list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="space-y-2">
         {rules.map((rule) => (
-          <div
+          <button
             key={rule.id}
-            className="card"
-            style={{ overflow: "hidden", borderLeft: `3px solid ${accentColor}` }}
+            onClick={() => setExpanded(expanded === rule.id ? null : rule.id)}
+            className="w-full text-left bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
           >
-            <button
-              onClick={() => setExpanded(expanded === rule.id ? null : rule.id)}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "14px 16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <span style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
-                {rule.title}
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-sm font-semibold text-gray-800">{rule.title}</span>
+              <span className="text-gray-400 text-sm ml-2 flex-shrink-0">
+                {expanded === rule.id ? '▲' : '▼'}
               </span>
-              <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>
-                {expanded === rule.id
-                  ? <ChevronUp size={16} strokeWidth={2} />
-                  : <ChevronDown size={16} strokeWidth={2} />
-                }
-              </span>
-            </button>
-
+            </div>
             {expanded === rule.id && (
-              <div
-                style={{
-                  padding: "0 16px 16px",
-                  borderTop: "1px solid var(--color-border)",
-                  paddingTop: 12,
-                }}
-              >
-                <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="px-4 pb-4 border-t border-gray-100 space-y-2">
+                <ul className="mt-2 space-y-1.5">
                   {rule.points.map((point, i) => (
-                    <li key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.55 }}>
-                      <span style={{ color: accentColor, flexShrink: 0, marginTop: 2, fontSize: 16, lineHeight: 1 }}>·</span>
-                      {point}
+                    <li key={i} className="flex gap-2 text-sm text-gray-600">
+                      <span className="text-red-600 mt-0.5 flex-shrink-0">•</span>
+                      <span>{point}</span>
                     </li>
                   ))}
                 </ul>
-
                 {rule.note && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 8,
-                      marginTop: 12,
-                      padding: "10px 12px",
-                      background: "color-mix(in srgb, var(--color-warning) 8%, transparent)",
-                      border: "1px solid color-mix(in srgb, var(--color-warning) 20%, transparent)",
-                      borderRadius: 8,
-                    }}
-                  >
-                    <AlertTriangle size={14} strokeWidth={2} style={{ color: "var(--color-warning)", flexShrink: 0, marginTop: 1 }} />
-                    <p style={{ fontSize: 12, color: "var(--color-warning)", lineHeight: 1.5 }}>{rule.note}</p>
+                  <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <p className="text-xs text-amber-800">⚠ {rule.note}</p>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
-
     </div>
   )
 }

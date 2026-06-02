@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react"
 import Image from "next/image"
-import { CheckCircle2, XCircle, Circle, Trophy, ThumbsUp, BookOpen, AlertTriangle, ChevronRight } from "lucide-react"
 import { getAllFlashcardSigns, CATEGORIES, type Sign } from "@/data/signs"
 
 function shuffle<T>(arr: T[]): T[] {
@@ -15,10 +14,12 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function getOptions(correct: Sign, allSigns: Sign[]): Sign[] {
+  // Get 3 distractors from the same category first, then random if not enough
   const sameCat = allSigns.filter(s => s.id !== correct.id && s.category === correct.category)
   const otherCat = allSigns.filter(s => s.id !== correct.id && s.category !== correct.category)
   const pool = [...shuffle(sameCat), ...shuffle(otherCat)]
-  return shuffle([correct, ...pool.slice(0, 3)])
+  const distractors = pool.slice(0, 3)
+  return shuffle([correct, ...distractors])
 }
 
 type AnswerState = 'unanswered' | 'correct' | 'wrong'
@@ -36,7 +37,9 @@ export default function FlashcardsPage() {
   const allSigns = useMemo(() => getAllFlashcardSigns(), [])
 
   const buildDeck = useCallback((catId: string) => {
-    const filtered = catId === 'all' ? allSigns : allSigns.filter(s => s.category === catId)
+    const filtered = catId === 'all'
+      ? allSigns
+      : allSigns.filter(s => s.category === catId)
     return shuffle(filtered)
   }, [allSigns])
 
@@ -61,7 +64,10 @@ export default function FlashcardsPage() {
     const correct = deck[index].id === signId
     setChosen(signId)
     setAnswer(correct ? 'correct' : 'wrong')
-    setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }))
+    setScore(s => ({
+      correct: s.correct + (correct ? 1 : 0),
+      total: s.total + 1,
+    }))
   }
 
   const next = () => {
@@ -78,94 +84,46 @@ export default function FlashcardsPage() {
     setChosen(null)
   }
 
-  // ── Start screen ──────────────────────────────────────────────────────────────
+  // Start screen
   if (!started) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="space-y-6">
         <div>
-          <h1 style={{ fontWeight: 700, fontSize: 28, color: "var(--color-text-primary)" }}>Flashcard Drill</h1>
-          <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginTop: 4 }}>
-            See the sign — pick the correct meaning from 4 options
+          <h1 className="text-xl font-bold text-gray-900">Flashcard Drill</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            See the sign → pick the correct meaning from 4 options
           </p>
         </div>
 
-        <div>
-          <p className="section-label" style={{ marginBottom: 10 }}>Category</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {/* All signs */}
+        <div className="space-y-3">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+            Category
+          </label>
+          <div className="space-y-2">
             <button
               onClick={() => setSelectedCategory('all')}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: "12px 16px",
-                borderRadius: 10,
-                border: selectedCategory === 'all'
-                  ? "2px solid var(--color-primary)"
-                  : "1px solid var(--color-border)",
-                background: selectedCategory === 'all'
-                  ? "color-mix(in srgb, var(--color-primary) 6%, white)"
-                  : "var(--color-surface)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                selectedCategory === 'all'
+                  ? 'bg-red-700 text-white border-red-700'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-red-300'
+              }`}
             >
-              <span style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: selectedCategory === 'all' ? "var(--color-primary)" : "var(--color-text-primary)",
-              }}>
-                All signs
-              </span>
-              <span className="font-mono-stat" style={{
-                fontSize: 12,
-                color: selectedCategory === 'all' ? "var(--color-primary)" : "var(--color-text-muted)",
-              }}>
-                {allSigns.length}
-              </span>
+              All signs ({allSigns.length})
             </button>
-
             {CATEGORIES.map(cat => {
               const count = allSigns.filter(s => s.category === cat.id).length
               if (count === 0) return null
-              const colorVar = `var(--color-${cat.id})`
-              const isSelected = selectedCategory === cat.id
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    borderRadius: 10,
-                    border: isSelected
-                      ? `2px solid ${colorVar}`
-                      : "1px solid var(--color-border)",
-                    background: isSelected
-                      ? `color-mix(in srgb, ${colorVar} 6%, white)`
-                      : "var(--color-surface)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
+                  className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                    selectedCategory === cat.id
+                      ? 'bg-red-700 text-white border-red-700'
+                      : `${cat.bg} ${cat.color} ${cat.border} hover:opacity-90`
+                  }`}
                 >
-                  <span style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: isSelected ? colorVar : "var(--color-text-primary)",
-                  }}>
-                    {cat.name}
-                  </span>
-                  <span className="font-mono-stat" style={{
-                    fontSize: 12,
-                    color: isSelected ? colorVar : "var(--color-text-muted)",
-                  }}>
-                    {count}
-                  </span>
+                  {cat.name} ({count})
                 </button>
               )
             })}
@@ -174,61 +132,34 @@ export default function FlashcardsPage() {
 
         <button
           onClick={() => startSession(selectedCategory)}
-          style={{
-            width: "100%",
-            background: "var(--color-primary)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 16,
-            padding: "14px 24px",
-            borderRadius: 12,
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
+          className="w-full bg-red-700 text-white font-bold py-4 rounded-xl text-lg hover:bg-red-800 transition-colors"
         >
-          Start Drill
-          <ChevronRight size={18} strokeWidth={2.5} />
+          Start Drill →
         </button>
       </div>
     )
   }
 
-  // ── Results screen ────────────────────────────────────────────────────────────
+  // Done screen
   if (index >= deck.length) {
     const pct = Math.round((score.correct / score.total) * 100)
-    const ResultIcon = pct >= 90 ? Trophy : pct >= 70 ? ThumbsUp : BookOpen
-    const resultColor = pct >= 90 ? "var(--color-pedal-cycle)" : pct >= 70 ? "var(--color-warning)" : "var(--color-prohibitory)"
-    const resultMsg = pct >= 90 ? "Excellent! Ready for the BTT." : pct >= 70 ? "Good, but keep practising." : "Keep studying — you've got this!"
-
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, textAlign: "center" }}>
-        <div className="card" style={{ padding: 40 }}>
-          <ResultIcon size={48} strokeWidth={1.5} style={{ color: resultColor, margin: "0 auto 16px" }} />
-          <div className="font-mono-stat" style={{ fontSize: 36, color: "var(--color-text-primary)", lineHeight: 1 }}>
+      <div className="space-y-6 text-center">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8">
+          <div className="text-5xl mb-4">{pct >= 90 ? '🎉' : pct >= 70 ? '👍' : '📚'}</div>
+          <h2 className="text-2xl font-bold text-gray-900">
             {score.correct} / {score.total}
-          </div>
-          <div className="font-mono-stat" style={{ fontSize: 48, fontWeight: 700, color: resultColor, margin: "8px 0" }}>
+          </h2>
+          <p className="text-4xl font-bold mt-1" style={{ color: pct >= 90 ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626' }}>
             {pct}%
-          </div>
-          <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>{resultMsg}</p>
+          </p>
+          <p className="text-gray-500 mt-2 text-sm">
+            {pct >= 90 ? 'Excellent! Ready for the BTT.' : pct >= 70 ? 'Good, but keep practising.' : 'Keep studying — you\'ve got this!'}
+          </p>
         </div>
         <button
           onClick={restart}
-          style={{
-            width: "100%",
-            background: "var(--color-primary)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 15,
-            padding: "14px 24px",
-            borderRadius: 12,
-            border: "none",
-            cursor: "pointer",
-          }}
+          className="w-full bg-red-700 text-white font-bold py-4 rounded-xl hover:bg-red-800 transition-colors"
         >
           Try Again
         </button>
@@ -236,39 +167,25 @@ export default function FlashcardsPage() {
     )
   }
 
-  // ── Drill screen ──────────────────────────────────────────────────────────────
   const current = deck[index]
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
+    <div className="space-y-4">
       {/* Progress */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
-        <span className="font-mono-stat" style={{ color: "var(--color-text-muted)" }}>
-          {index + 1} / {deck.length}
-        </span>
-        <span style={{ fontWeight: 600, color: "var(--color-pedal-cycle)" }}>
-          {score.correct} correct
-        </span>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-500">{index + 1} / {deck.length}</span>
+        <span className="font-medium text-green-700">{score.correct} correct</span>
       </div>
-      <div style={{ width: "100%", background: "var(--color-border)", borderRadius: 999, height: 4 }}>
+      <div className="w-full bg-gray-200 rounded-full h-1.5">
         <div
-          style={{
-            background: "var(--color-primary)",
-            height: 4,
-            borderRadius: 999,
-            transition: "width 0.3s",
-            width: `${(index / deck.length) * 100}%`,
-          }}
+          className="bg-red-700 h-1.5 rounded-full transition-all"
+          style={{ width: `${((index) / deck.length) * 100}%` }}
         />
       </div>
 
       {/* Sign card */}
-      <div
-        className="card"
-        style={{ padding: 32, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}
-      >
-        <div style={{ width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="bg-white border-2 border-gray-200 rounded-2xl p-6 flex flex-col items-center gap-4">
+        <div className="w-40 h-40 flex items-center justify-center">
           <Image
             src={current.image}
             alt="What sign is this?"
@@ -277,113 +194,61 @@ export default function FlashcardsPage() {
             className="object-contain max-w-full max-h-full"
           />
         </div>
-        <p style={{ fontSize: 13, color: "var(--color-text-muted)", textAlign: "center" }}>
-          What does this sign mean?
-        </p>
+        <p className="text-sm text-gray-500 text-center">What does this sign mean?</p>
       </div>
 
       {/* Answer options */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="space-y-2">
         {options.map((opt) => {
           const isCorrect = opt.id === current.id
           const isChosen = opt.id === chosen
-          const revealed = answer !== 'unanswered'
+          let btnClass = 'w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-colors '
 
-          let borderColor = "var(--color-border)"
-          let bg = "var(--color-surface)"
-          let textColor = "var(--color-text-primary)"
-
-          if (revealed) {
-            if (isCorrect) { borderColor = "var(--color-pedal-cycle)"; bg = "color-mix(in srgb, var(--color-pedal-cycle) 8%, white)"; textColor = "var(--color-pedal-cycle)" }
-            else if (isChosen) { borderColor = "var(--color-prohibitory)"; bg = "color-mix(in srgb, var(--color-prohibitory) 8%, white)"; textColor = "var(--color-prohibitory)" }
-            else { textColor = "var(--color-text-muted)" }
+          if (answer === 'unanswered') {
+            btnClass += 'bg-white border-gray-200 text-gray-700 hover:border-red-300 hover:bg-red-50'
+          } else if (isCorrect) {
+            btnClass += 'bg-green-100 border-green-500 text-green-800'
+          } else if (isChosen) {
+            btnClass += 'bg-red-100 border-red-500 text-red-800'
+          } else {
+            btnClass += 'bg-white border-gray-200 text-gray-400'
           }
-
-          const IndicatorIcon = isCorrect ? CheckCircle2 : isChosen ? XCircle : Circle
 
           return (
             <button
               key={opt.id}
               onClick={() => handleAnswer(opt.id)}
-              disabled={revealed}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: "12px 16px",
-                borderRadius: 10,
-                border: `1px solid ${borderColor}`,
-                background: bg,
-                cursor: revealed ? "default" : "pointer",
-                fontSize: 14,
-                fontWeight: 500,
-                color: textColor,
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                transition: "border-color 0.15s",
-              }}
+              className={btnClass}
+              disabled={answer !== 'unanswered'}
             >
-              {revealed && (
-                <IndicatorIcon
-                  size={16}
-                  strokeWidth={2}
-                  style={{ color: isCorrect ? "var(--color-pedal-cycle)" : isChosen ? "var(--color-prohibitory)" : "var(--color-border)", flexShrink: 0, marginTop: 1 }}
-                />
-              )}
-              {opt.name}
+              <div className="flex items-start gap-2">
+                {answer !== 'unanswered' && (
+                  <span>{isCorrect ? '✅' : isChosen ? '❌' : '○'}</span>
+                )}
+                <span>{opt.name}</span>
+              </div>
             </button>
           )
         })}
       </div>
 
-      {/* Reveal panel */}
+      {/* Reveal description after answering */}
       {answer !== 'unanswered' && (
-        <div
-          style={{
-            borderRadius: 10,
-            padding: "12px 16px",
-            border: `1px solid ${answer === 'correct' ? "color-mix(in srgb, var(--color-pedal-cycle) 30%, transparent)" : "color-mix(in srgb, var(--color-prohibitory) 30%, transparent)"}`,
-            background: answer === 'correct'
-              ? "color-mix(in srgb, var(--color-pedal-cycle) 6%, white)"
-              : "color-mix(in srgb, var(--color-prohibitory) 6%, white)",
-            borderLeft: `4px solid ${answer === 'correct' ? "var(--color-pedal-cycle)" : "var(--color-prohibitory)"}`,
-          }}
-        >
-          <p style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>{current.name}</p>
-          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>{current.description}</p>
-          {current.note && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 5, marginTop: 8 }}>
-              <AlertTriangle size={13} strokeWidth={2} style={{ color: "var(--color-warning)", flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontSize: 12, color: "var(--color-warning)" }}>{current.note}</p>
-            </div>
-          )}
+        <div className={`rounded-xl p-3 text-sm ${answer === 'correct' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+          <p className="font-semibold">{current.name}</p>
+          <p className="mt-1 text-xs">{current.description}</p>
+          {current.note && <p className="mt-1 text-xs font-medium">⚠ {current.note}</p>}
         </div>
       )}
 
       {answer !== 'unanswered' && (
         <button
           onClick={next}
-          style={{
-            width: "100%",
-            background: "var(--color-text-primary)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 15,
-            padding: "13px 24px",
-            borderRadius: 12,
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
+          className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors"
         >
-          {index + 1 < deck.length ? "Next" : "See Results"}
-          <ChevronRight size={17} strokeWidth={2.5} />
+          {index + 1 < deck.length ? 'Next →' : 'See Results'}
         </button>
       )}
-
     </div>
   )
 }
